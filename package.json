@@ -12,6 +12,7 @@
   "author": "Robson Nonato",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^8.40.0",
     "nodemon": "^2.0.22"
   },
   "dependencies": {

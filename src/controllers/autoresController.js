@@ -1,60 +1,71 @@
+import mongoose from "mongoose";
 import autores from "../models/Autor.js";
 
 class AutorController {
-  static listarAutores = (req, res) => {
-    autores.find((e, autores) => {
-      res.status(200).json(autores);
-    });
+  static listarAutores = async (req, res) => {
+    try {
+      const autoresResult = await autores.find();
+      res.status(200).json(autoresResult);
+    } catch (error) {
+      res.status(500).json({ message: "Erro interno no servidor" });
+    }
   };
 
-  static listarAutorPorId = (req, res) => {
-    const { id } = req.params;
+  static listarAutorPorId = async (req, res) => {
+    try {
+      const { id } = req.params;
 
-    autores.findById(id, (err, autores) => {
-      if (err) {
-        res.status(400).send({ message: "Autor não encontrado!" });
+      const autoresResult = await autores.findById(id);
+
+      if (autoresResult !== null) {
+        res.status(200).json(autoresResult);
       } else {
-        res.status(200).json(autores);
+        res.status(404).send({ message: "ID do autor não foi encontrado" });
       }
-    });
-  };
-
-  static cadastrarAutor = (req, res) => {
-    let autor = new autores(req.body);
-
-    autor.save((err) => {
-      if (err) {
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError) {
         res
-          .status(500)
-          .send({ message: `${err.message} - falha ao cadastrar autor` });
+          .status(400)
+          .send({ message: "Um ou mais dados fornecidos estão incorretos" });
       } else {
-        res.status(201).send(autor.toJSON());
+        res.status(500).send({ message: "Erro interno de Servidor." });
       }
-    });
+    }
   };
 
-  static atualizarAutor = (req, res) => {
-    const { id } = req.params;
+  static cadastrarAutor = async (req, res) => {
+    try {
+      let autor = new autores(req.body);
 
-    autores.findByIdAndUpdate(id, { $set: req.body }, (err) => {
-      if (!err) {
-        res.status(200).send({ message: "Autor atualizado com sucesso" });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+      const autorResult = await autor.save();
+
+      res.status(201).send(autorResult);
+    } catch (error) {
+      res.status(500).send({ message: "Falha ao cadastrar autor" });
+    }
   };
 
-  static excluirAutor = (req, res) => {
-    const { id } = req.params;
+  static atualizarAutor = async (req, res) => {
+    try {
+      const { id } = req.params;
+      await autores.findByIdAndUpdate(id, { $set: req.body });
+      res.status(200).send({ message: "Autor atualizado com sucesso" });
+    } catch (error) {
+      res.status(500).send({ message: "Erro ao atualizar autor" });
+    }
+  };
 
-    autores.findByIdAndDelete(id, (err) => {
-      if (!err) {
-        res.status(200).send({ message: "Autor exluido com sucesso." });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+  static excluirAutor = async (req, res) => {
+    const { id } = req.params;
+    try {
+      await autores.findByIdAndDelete(id);
+
+      res.status(200).send({ message: "Autor exluido com sucesso." });
+    } catch (error) {
+      res
+        .status(500)
+        .send({ message: `Não foi encontrado autor com ID:${id} ` });
+    }
   };
 }
 
