@@ -1,16 +1,16 @@
 import livros from "../models/Livro.js";
 
 class LivroController {
-  static listarLivros = async (req, res) => {
+  static listarLivros = async (req, res, next) => {
     try {
       const livroResult = await livros.find().populate("autor").exec();
       res.status(200).json(livroResult);
     } catch (error) {
-      res.status(500).json({ message: "Erro interno do servidor" });
+      next(error);
     }
   };
 
-  static listarLivroPorId = async (req, res) => {
+  static listarLivroPorId = async (req, res, next) => {
     try {
       const { id } = req.params;
       const livroResult = await livros
@@ -19,49 +19,47 @@ class LivroController {
         .exec();
       res.status(200).json(livroResult);
     } catch (error) {
-      res.status(400).send({ message: "Livro não encontrado!" });
+      next(error);
     }
   };
 
-  static cadastrarLivro = async (req, res) => {
+  static cadastrarLivro = async (req, res, next) => {
     try {
       let livro = new livros(req.body);
       const livroCadastro = await livro.save();
       res.status(201).send(livroCadastro.toJSON());
     } catch (error) {
-      res
-        .status(500)
-        .send({ message: `${error.message} - falha ao cadastrar livro` });
+      next(error);
     }
   };
 
-  static atualizarLivro = async (req, res) => {
+  static atualizarLivro = async (req, res, next) => {
     try {
       const { id } = req.params;
       await livros.findByIdAndUpdate(id, { $set: req.body });
       res.status(200).send({ message: "Livro atualizado com sucesso" });
     } catch (error) {
-      res.status(500).send({ message: error.message });
+      next(error);
     }
   };
 
-  static excluirLivro = async (req, res) => {
+  static excluirLivro = async (req, res, next) => {
     try {
       const { id } = req.params;
       livros.findByIdAndDelete(id);
       res.status(200).send({ message: "Livro exluido com sucesso." });
     } catch (error) {
-      res.status(500).send({ message: error.message });
+      next(error);
     }
   };
 
-  static listarLivroPorEditora = async (req, res) => {
+  static listarLivroPorEditora = async (req, res, next) => {
     try {
       const editora = req.query.editora;
       const livrosResult = await livros.find({ editora: editora });
       res.status(200).send(livrosResult);
     } catch (error) {
-      res.status(500).send({ message: "Internal server error" });
+      next(error);
     }
   };
 }
